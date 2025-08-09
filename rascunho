@@ -1,0 +1,119 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define TAB_TAM 10    // tamanho do tabuleiro (10x10)
+#define HAB_TAM 3     // tamanho da matriz de habilidade (3x3)
+#define AGUA 0        // representa água
+#define NAVIO 3       // representa navio
+#define HABILIDADE 5  // representa célula atingida por habilidade
+
+void inicializarTabuleiro(int tabuleiro[TAB_TAM][TAB_TAM]) {
+    for (int i = 0; i < TAB_TAM; i++) {
+        for (int j = 0; j < TAB_TAM; j++) {
+            tabuleiro[i][j] = AGUA;
+        }
+    }
+
+    // Colocando alguns navios em posições fixas
+    tabuleiro[2][2] = NAVIO;
+    tabuleiro[4][4] = NAVIO;
+    tabuleiro[6][6] = NAVIO;
+    tabuleiro[2][6] = NAVIO;
+    tabuleiro[6][2] = NAVIO;
+}
+
+void imprimirTabuleiro(int tabuleiro[TAB_TAM][TAB_TAM]) {
+    for (int i = 0; i < TAB_TAM; i++) {
+        for (int j = 0; j < TAB_TAM; j++) {
+            if (tabuleiro[i][j] == AGUA)
+                printf("0 ");
+            else if (tabuleiro[i][j] == NAVIO)
+                printf("3 ");
+            else if (tabuleiro[i][j] == HABILIDADE)
+                printf("5 ");
+            else
+                printf("%d ", tabuleiro[i][j]); // caso haja outros valores
+        }
+        printf("\n");
+    }
+}
+
+/* Constrói um padrão em forma de "cone" na matriz de habilidade */
+void construirCone(int matriz[HAB_TAM][HAB_TAM]) {
+    int meio = HAB_TAM / 2;
+    for (int i = 0; i < HAB_TAM; i++) {
+        for (int j = 0; j < HAB_TAM; j++) {
+            if (j >= meio - i && j <= meio + i)
+                matriz[i][j] = 1;
+            else
+                matriz[i][j] = 0;
+        }
+    }
+}
+
+/* Constrói um padrão em cruz (linha e coluna central) */
+void construirCruz(int matriz[HAB_TAM][HAB_TAM]) {
+    int meio = HAB_TAM / 2;
+    for (int i = 0; i < HAB_TAM; i++) {
+        for (int j = 0; j < HAB_TAM; j++) {
+            if (i == meio || j == meio)
+                matriz[i][j] = 1;
+            else
+                matriz[i][j] = 0;
+        }
+    }
+}
+
+/* Constrói um padrão tipo losango (octaedro discreto) usando distância de Manhattan */
+void construirOctaedro(int matriz[HAB_TAM][HAB_TAM]) {
+    int meio = HAB_TAM / 2;
+    for (int i = 0; i < HAB_TAM; i++) {
+        for (int j = 0; j < HAB_TAM; j++) {
+            if (abs(i - meio) + abs(j - meio) <= meio)
+                matriz[i][j] = 1;
+            else
+                matriz[i][j] = 0;
+        }
+    }
+}
+
+/* Aplica a matriz de habilidade ao tabuleiro, centrando-a em (origemX, origemY).
+   Só marca células que estão dentro do tabuleiro e que atualmente são AGUA. */
+void aplicarHabilidade(int tabuleiro[TAB_TAM][TAB_TAM],
+                      int habilidade[HAB_TAM][HAB_TAM],
+                      int origemX, int origemY) {
+    int meio = HAB_TAM / 2;
+    for (int i = 0; i < HAB_TAM; i++) {
+        for (int j = 0; j < HAB_TAM; j++) {
+            int posX = origemX + i - meio;
+            int posY = origemY + j - meio;
+
+            if (posX >= 0 && posX < TAB_TAM && posY >= 0 && posY < TAB_TAM) {
+                if (habilidade[i][j] == 1 && tabuleiro[posX][posY] == AGUA) {
+                    tabuleiro[posX][posY] = HABILIDADE;
+                }
+            }
+        }
+    }
+}
+
+int main(void) {
+    int tabuleiro[TAB_TAM][TAB_TAM];
+    int cone[HAB_TAM][HAB_TAM];
+    int cruz[HAB_TAM][HAB_TAM];
+    int octaedro[HAB_TAM][HAB_TAM];
+
+    inicializarTabuleiro(tabuleiro);
+    construirCone(cone);
+    construirCruz(cruz);
+    construirOctaedro(octaedro);
+
+    aplicarHabilidade(tabuleiro, cone, 2, 2);
+    aplicarHabilidade(tabuleiro, cruz, 4, 4);
+    aplicarHabilidade(tabuleiro, octaedro, 6, 6);
+
+    printf("Tabuleiro final com habilidades:\n");
+    imprimirTabuleiro(tabuleiro);
+
+    return 0;
+}
